@@ -127,6 +127,23 @@ class MainWindow(QMainWindow):
         #"Test Yourself" Button
         self.TestYourselfButton = GradientButton("Test Yourself", self)
         self.ButtonDesign(self.TestYourselfButton, 30, 350)
+        
+        self.credits = QLabel("Made by Bakr Marhfoul", self)
+        self.credits.setFont(QFont("Arial", 12))
+        self.credits.setStyleSheet("color: white; background: transparent;")
+        
+        # Get width and height of label text
+        self.credits.adjustSize()
+        label_width = self.credits.width()
+        label_height = self.credits.height()
+        
+        # Calculate x to center, y to stick to bottom (with padding)
+        window_width = self.width()
+        window_height = self.height()
+        x = (window_width - label_width) // 2
+        y = window_height - label_height - 10  # 10px padding from bottom
+        
+        self.credits.move(x, y)
 
     def center_window(self):
         '''Centers the main window on the screen'''

@@ -1,7 +1,8 @@
 import sys
 from base_ui import GradientLabel, GradientButton, BaseWindow
+from data_manager import DataManager
 from PyQt5.QtGui import QFont, QPainter, QLinearGradient, QColor
-from PyQt5.QtWidgets import QVBoxLayout, QWidget, QLabel, QApplication
+from PyQt5.QtWidgets import QVBoxLayout, QWidget, QMessageBox, QApplication
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QWidget, QLineEdit
 from PyQt5.QtGui import QFont
@@ -41,7 +42,7 @@ class GradientInputField(QWidget):
 class AddWordWindow(BaseWindow):
     def __init__(self):
         super().__init__("HanSwipe | Mastering Chinese", 360, 640)
-        
+        self.data_manager = DataManager()
     # Remove default title
         self.title_label.deleteLater()
         
@@ -94,7 +95,39 @@ class AddWordWindow(BaseWindow):
         self.done_button.setGeometry(30, 520, 300, 60)
         self.done_button.setFont(QFont("Arial", 20, QFont.Bold))
         self.apply_shadow(self.done_button)
+        
+        self.done_button.clicked.connect(self.save_word_data, )
 
+    def save_word_data(self):
+        """Collect input data and save to dictionary"""
+        chinese = self.input_chinese.input.text().strip()
+        pinyin = self.input_pinyin.input.text().strip()
+        english = self.input_english.input.text().strip()
+
+        if not chinese or not pinyin or not english:
+            QMessageBox.warning(self, "Missing Information", 
+                               "Please fill in all fields before saving.")
+            return
+
+        try:
+            # Save the word using data manager
+            word_id = self.data_manager.add_word(chinese, pinyin, english)
+            
+            # Show success message
+            QMessageBox.information(self, "Success", 
+                                  f"Word '{chinese}' saved successfully!")
+            
+            # Clear the input fields
+            self.input_chinese.input.clear()
+            self.input_pinyin.input.clear()
+            self.input_english.input.clear()
+            
+            # Focus back to Chinese input
+            self.input_chinese.input.setFocus()
+            
+        except Exception as e:
+            QMessageBox.critical(self, "Error", 
+                               f"An error occurred while saving:\n{str(e)}")
     def style_credits(self):
         self.credits.setStyleSheet("color: white; background: transparent;")
         self.credits.move((self.width() - self.credits.width()) // 2, self.height() - 40)

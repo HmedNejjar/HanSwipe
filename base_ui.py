@@ -1,6 +1,6 @@
 import sys
 from PyQt5.QtWidgets import QMainWindow, QLabel, QGraphicsDropShadowEffect, QPushButton
-from PyQt5.QtGui import QFont, QPainter, QLinearGradient, QColor, QBrush
+from PyQt5.QtGui import QIcon, QFont, QPainter, QLinearGradient, QColor, QBrush
 from PyQt5.QtCore import Qt, QRect, QPropertyAnimation, QEasingCurve, QTimer
 
 
@@ -31,11 +31,13 @@ class GradientLabel(QLabel):
 
 class BaseWindow(QMainWindow):
     """Base window with gradient title, credits label, and dark background."""
-    def __init__(self, title="My App", width=1000, height=700):
+    def __init__(self, title, width=1000, height=700):
         super().__init__()
+        self.setWindowIcon(QIcon("app_logo.ico"))
         self.setWindowTitle(title)
+        self.setFixedSize(360, 640)
         self.setGeometry(100, 100, width, height)
-        self.setMinimumSize(800, 600)
+
         self.setStyleSheet("background-color: #121212;")  # Dark mode
 
         # Center window

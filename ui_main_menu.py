@@ -1,14 +1,12 @@
 import sys
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtGui import QIcon, QFont, QLinearGradient, QColor, QPainter
+from PyQt5.QtGui import QFont, QLinearGradient, QColor, QPainter
 from base_ui import BaseWindow, GradientLabel, GradientButton
 
 class MainWindow(BaseWindow):
     def __init__(self):
         # Initialize with custom title and mobile-friendly size
         super().__init__("HanSwipe | Mastering Chinese", 360, 640)
-        self.setWindowIcon(QIcon("app_logo.ico"))
-        self.setFixedSize(360, 640)
         
         # Customize the UI
         self.setup_ui()

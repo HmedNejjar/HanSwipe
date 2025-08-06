@@ -139,9 +139,3 @@ class AddWordWindow(BaseWindow):
         gradient.setColorAt(0, QColor(0, 102, 255))   # Blue
         gradient.setColorAt(1, QColor(138, 43, 226))  # Violet
         painter.fillRect(self.rect(), gradient)
-        
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = AddWordWindow()
-    window.show()
-    sys.exit(app.exec_())

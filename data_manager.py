@@ -29,5 +29,5 @@ class DataManager:
             "pinyin": pinyin,
             "english": english
         }
-        self.save_data()
+        self.saveData()
         return word_id

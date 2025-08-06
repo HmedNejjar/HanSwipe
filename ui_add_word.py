@@ -121,6 +121,7 @@ class AddWordWindow(BaseWindow):
             self.input_chinese.input.clear()
             self.input_pinyin.input.clear()
             self.input_english.input.clear()
+            self.close()
             
             # Focus back to Chinese input
             self.input_chinese.input.setFocus()

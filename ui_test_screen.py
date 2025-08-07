@@ -1,138 +1,188 @@
 import sys
-from base_ui import BaseWindow, GradientLabel, GradientButton
-from PyQt5.QtGui import QFont, QIcon, QPainter
-from PyQt5.QtWidgets import QApplication, QVBoxLayout, QWidget, QLabel, QHBoxLayout
-from PyQt5.QtCore import Qt
+import random
+from PyQt5.QtWidgets import QApplication, QLabel, QHBoxLayout, QWidget
+from PyQt5.QtGui import QFont, QPainter, QLinearGradient, QColor, QTransform
+from PyQt5.QtCore import Qt, QPropertyAnimation, pyqtProperty, QRect
+from base_ui import BaseWindow, GradientButton, GradientLabel
 from data_manager import DataManager
 
-class TestWindow(BaseWindow):
-    def __init__(self):
-        super().__init__("HanSwipe | Mastering Chinese", 360, 640)
-        self.data_manager = DataManager()
-        self.current_word_index = 0
-        self.word_ids = list(self.data_manager.words.keys())
-        self.showing_answer = False
-        
-        self.setup_ui()
-        self.load_current_word()
-    
-    def setup_ui(self):
-        # Remove default title
-        self.title_label.deleteLater()
-        
-        # Create custom title
-        self.title_background = GradientLabel("Test Yourself", self)
-        self.title_background.move(30, 30)
-        self.title_background.setFont(QFont("Arial", 30, QFont.Bold))
-        self.apply_shadow(self.title_background)
-        
-        # Create main content area
-        self.content_widget = QWidget(self)
-        self.content_widget.setGeometry(30, 120, 300, 300)
-        self.content_widget.setStyleSheet("background: transparent")
-        
-        layout = QVBoxLayout()
-        layout.setSpacing(20)
-        layout.setContentsMargins(0, 0, 0, 0)
-        
-        # Word display button
-        self.word_button = GradientButton("", self.content_widget)
-        self.word_button.setFixedSize(300, 200)
-        self.word_button.setFont(QFont("Arial", 24, QFont.Bold))
-        self.word_button.clicked.connect(self.toggle_answer)
-        self.apply_shadow(self.word_button)
-        
-        # Info label
-        self.info_label = QLabel("Click to reveal answer", self.content_widget)
-        self.info_label.setAlignment(Qt.AlignCenter)
-        self.info_label.setStyleSheet("color: white; font: 14px;")
-        self.info_label.setFixedHeight(30)
-        
-        layout.addWidget(self.word_button)
-        layout.addWidget(self.info_label)
-        self.content_widget.setLayout(layout)
-        
-        # Navigation arrows
-        self.nav_widget = QWidget(self)
-        self.nav_widget.setGeometry(30, 450, 300, 60)
-        self.nav_widget.setStyleSheet("background: transparent")
-        
-        nav_layout = QHBoxLayout()
-        nav_layout.setContentsMargins(0, 0, 0, 0)
-        nav_layout.setSpacing(20)
-        
-        # Left arrow button
-        self.left_btn = GradientButton("❌", self.nav_widget)
-        self.left_btn.setFixedSize(60, 60)
-        self.left_btn.setFont(QFont("Arial", 20, QFont.Bold))
-        self.left_btn.clicked.connect(self.previous_word)
-        self.apply_shadow(self.left_btn)
-        
-        # Right arrow button
-        self.right_btn = GradientButton("✅", self.nav_widget)
-        self.right_btn.setFixedSize(60, 60)
-        self.right_btn.setFont(QFont("Arial", 20, QFont.Bold))
-        self.right_btn.clicked.connect(self.next_word)
-        self.apply_shadow(self.right_btn)
-        
-        nav_layout.addWidget(self.left_btn)
-        nav_layout.addStretch()
-        nav_layout.addWidget(self.right_btn)
-        self.nav_widget.setLayout(nav_layout)
-    
-    def load_current_word(self):
-        """Load the current word based on index"""
-        if not self.word_ids:
-            self.word_button.setText("No words available")
-            self.word_button.setEnabled(False)
-            self.info_label.setText("Add words first in the main menu")
-            self.left_btn.setEnabled(False)
-            self.right_btn.setEnabled(False)
-            return
-        
-        self.showing_answer = False
-        word_id = self.word_ids[self.current_word_index]
-        word_data = self.data_manager.words[word_id]
-        
-        self.word_button.setText(word_data['chinese'])
-        self.info_label.setText("Click to reveal answer")
-    
-    def next_word(self):
-        """Move to the next word"""
-        if not self.word_ids:
-            return
-            
-        self.current_word_index = (self.current_word_index + 1) % len(self.word_ids)
-        self.load_current_word()
-    
-    def previous_word(self):
-        """Move to the previous word"""
-        if not self.word_ids:
-            return
-            
-        self.current_word_index = (self.current_word_index - 1) % len(self.word_ids)
-        self.load_current_word()
-    
-    def toggle_answer(self):
-        """Toggle between showing question and answer"""
-        if not self.word_ids:
-            return
-            
-        word_id = self.word_ids[self.current_word_index]
-        word_data = self.data_manager.words[word_id]
-        
-        if self.showing_answer:
-            self.word_button.setText(word_data['chinese'])
-            self.info_label.setText("Click to reveal answer")
+
+class FlipCard(GradientButton):
+    """A GradientButton subclass that can animate flip effect."""
+    def __init__(self, text, parent=None):
+        super().__init__(text, parent)
+        self._rotation = 0
+        self._current_text = text
+        self._back_text = ""
+        self.flipped = False
+        self.setFont(QFont("Arial", 24, QFont.Bold))
+
+    def setBackText(self, text):
+        self._back_text = text
+
+    def flip(self):
+        self.animation = QPropertyAnimation(self, b"rotation")
+        self.animation.setDuration(400)
+        self.animation.setStartValue(0)
+        self.animation.setEndValue(180)
+        self.animation.valueChanged.connect(self.update)
+        self.animation.finished.connect(self.swapText)
+        self.animation.start()
+
+    def swapText(self):
+        self.flipped = not self.flipped
+        self._rotation = 0
+        self.setText(self._back_text if self.flipped else self._current_text)
+        self.update()
+
+    def setText(self, text):
+        if not self.flipped:
+            self._current_text = text
         else:
-            answer_text = f"{word_data['pinyin']}\n\n{word_data['english']}"
-            self.word_button.setText(answer_text)
-            self.info_label.setText("Click to hide answer")
-        
-        self.showing_answer = not self.showing_answer
+            self._back_text = text
+        super().setText(text)
+
+    def getRotation(self):
+        return self._rotation
+
+    def setRotation(self, angle):
+        self._rotation = angle
+        self.update()
+
+    rotation = pyqtProperty(int, fget=getRotation, fset=setRotation)
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
+        transform = QTransform()
+
+        # Rotate around the vertical center
+        transform.translate(self.width() / 2, self.height() / 2)
+        angle = self._rotation % 360
+        if 90 < angle <= 270:
+            transform.scale(-1, 1)
+        transform.rotate(angle, Qt.YAxis)
+        transform.translate(-self.width() / 2, -self.height() / 2)
+        painter.setTransform(transform)
+
+        # Paint background gradient
+        gradient = QLinearGradient(0, 0, self.width(), self.height())
+        gradient.setColorAt(0, QColor(138, 43, 226))
+        gradient.setColorAt(1, QColor(0, 102, 255))
+        painter.setBrush(gradient)
+        painter.setPen(Qt.NoPen)
+        painter.drawRoundedRect(QRect(0, 0, self.width(), self.height()), 15, 15)
+
+        # Paint text
+        painter.resetTransform()
+        super().paintEvent(event)
+
+
+class FlashcardWindow(BaseWindow):
+    def __init__(self):
+        super().__init__("HanSwipe | Flashcards", 360, 640)
+        self.data_manager = DataManager()
+        self.word_ids = list(self.data_manager.words.keys())
+        random.shuffle(self.word_ids)
+
+        self.current_index = 0
+        self.know_count = 0
+        self.dont_know_count = 0
+
+        self.setup_ui()
+        self.load_word()
+
+    def setup_ui(self):
+        self.title_label.deleteLater()
+
+        # Title
+        self.custom_title = GradientLabel("Test Yourself", self)
+        self.custom_title.move(30, 30)
+        self.custom_title.setFont(QFont("Arial", 30, QFont.Bold))
+        self.apply_shadow(self.custom_title)
+
+        # Flashcard with flip effect
+        self.flashcard = FlipCard("", self)
+        self.flashcard.setGeometry(30, 120, 300, 220)
+        self.flashcard.clicked.connect(self.flip_card)
+        self.apply_shadow(self.flashcard)
+
+        # Counter
+        self.counter_label = QLabel("", self)
+        self.counter_label.setFont(QFont("Arial", 12))
+        self.counter_label.setStyleSheet("color: white; background: transparent;")
+        self.counter_label.setGeometry(30, 360, 300, 30)
+        self.counter_label.setAlignment(Qt.AlignCenter)
+
+        # Buttons
+        self.know_btn = GradientButton("✅ I know it", self)
+        self.know_btn.setGeometry(30, 450, 140, 60)
+        self.know_btn.setFont(QFont("Arial", 14, QFont.Bold))
+        self.know_btn.clicked.connect(self.mark_known)
+        self.apply_shadow(self.know_btn)
+
+        self.dont_know_btn = GradientButton("❌ Don't know", self)
+        self.dont_know_btn.setGeometry(190, 450, 140, 60)
+        self.dont_know_btn.setFont(QFont("Arial", 14, QFont.Bold))
+        self.dont_know_btn.clicked.connect(self.mark_unknown)
+        self.apply_shadow(self.dont_know_btn)
+
+        self.style_credits()
+
+    def style_credits(self):
+        self.credits.setStyleSheet("color: white; background: transparent;")
+        self.credits.move((self.width() - self.credits.width()) // 2, self.height() - 40)
+
+    def load_word(self):
+        if not self.word_ids:
+            self.flashcard.setText("No words available")
+            self.flashcard.setBackText("")
+            self.know_btn.setEnabled(False)
+            self.dont_know_btn.setEnabled(False)
+            self.counter_label.setText("Add words from the main menu")
+            return
+
+        if self.current_index >= len(self.word_ids):
+            self.flashcard.setText("🎉 Done!")
+            self.flashcard.setBackText("")
+            self.know_btn.setEnabled(False)
+            self.dont_know_btn.setEnabled(False)
+            self.counter_label.setText(f"Known: {self.know_count} / {self.know_count + self.dont_know_count}")
+            return
+
+        word_id = self.word_ids[self.current_index]
+        word = self.data_manager.words[word_id]
+        self.flashcard.setText(word["chinese"])
+        self.flashcard.setBackText(f"{word['pinyin']}\n\n{word['english']}")
+        self.flashcard.flipped = False
+        self.counter_label.setText(f"Known: {self.know_count}   |   Don't know: {self.dont_know_count}")
+
+    def flip_card(self):
+        self.flashcard.flip()
+
+    def mark_known(self):
+        self.know_count += 1
+        self.next_word()
+
+    def mark_unknown(self):
+        self.dont_know_count += 1
+        self.next_word()
+
+    def next_word(self):
+        self.current_index += 1
+        self.load_word()
+
+    def paintEvent(self, event):
+        """Background gradient like the main menu"""
+        painter = QPainter(self)
+        gradient = QLinearGradient(0, 0, self.width(), self.height())
+        gradient.setColorAt(0, QColor(0, 102, 255))
+        gradient.setColorAt(1, QColor(138, 43, 226))
+        painter.fillRect(self.rect(), gradient)
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = TestWindow()
+    window = FlashcardWindow()
     window.show()
     sys.exit(app.exec_())

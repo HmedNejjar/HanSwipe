@@ -2,7 +2,7 @@ import sys
 from PyQt5.QtWidgets import QApplication
 from ui_main_menu import MainWindow
 from ui_add_word import AddWordWindow
-from ui_test_screen import TestWindow
+from ui_test_screen import FlashcardWindow
 
 class AppControl:
     """Controls the application flow and window switching."""
@@ -10,7 +10,7 @@ class AppControl:
         self.app = QApplication(sys.argv)
         self.main_window = MainWindow()
         self.add_word = AddWordWindow()
-        self.test_yourself = TestWindow()
+        self.test_yourself = FlashcardWindow()
         
         # Connect button signals to window switching methods
         self.main_window.addWordButton.clicked.connect(self.show_add_word)

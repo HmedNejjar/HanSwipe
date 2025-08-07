@@ -1,9 +1,20 @@
+"""
+Data management class for loading and saving vocabulary words.
+"""
+
 import json
 import os
 
 class DataManager:
+    """Manages vocabulary word data storage and retrieval."""
+    
     def __init__(self, filename="words_data.json"):
-        """Initialize DataManager with a filename and load data from file."""
+        """
+        Initialize DataManager with a filename and load data from file.
+        
+        Args:
+            filename (str): JSON file to store word data
+        """
         self.filename = filename
         self.words = {}
         self.loadData()
@@ -22,7 +33,17 @@ class DataManager:
             json.dump(self.words, file, ensure_ascii=False, indent=4)
     
     def add_word(self, chinese, pinyin, english):
-        """Add a new word to the data and save it to the file."""
+        """
+        Add a new word to the data and save it to the file.
+        
+        Args:
+            chinese (str): Chinese characters
+            pinyin (str): Pinyin pronunciation
+            english (str): English meaning
+            
+        Returns:
+            str: ID of the newly added word
+        """
         word_id = f"word_{len(self.words) + 1}"
         self.words[word_id] = {
             "chinese": chinese,

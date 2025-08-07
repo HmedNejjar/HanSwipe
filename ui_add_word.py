@@ -1,19 +1,31 @@
-import sys
+"""
+Window for adding new Chinese vocabulary words with Pinyin and English translation.
+"""
 from base_ui import GradientLabel, GradientButton, BaseWindow
-from data_manager import DataManager
 from PyQt5.QtGui import QFont, QPainter, QLinearGradient, QColor
-from PyQt5.QtWidgets import QVBoxLayout, QWidget, QMessageBox, QApplication
+from PyQt5.QtWidgets import QVBoxLayout, QWidget, QMessageBox
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QWidget, QLineEdit
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
 
 class GradientInputField(QWidget):
+    """Custom input field with gradient background."""
+    
     def __init__(self, placeholder, parent=None):
+        """
+        Initialize the input field with placeholder text.
+        
+        Args:
+            placeholder (str): Placeholder text
+            parent (QWidget): Parent widget
+        """
         super().__init__(parent)
         self.setFixedSize(300, 50)
-        
-        # Create QLineEdit inside the widget
+        self.create_input_field(placeholder)
+
+    def create_input_field(self, placeholder):
+        """Create and style the QLineEdit input field."""
         self.input = QLineEdit(self)
         self.input.setPlaceholderText(placeholder)
         self.input.setFont(QFont("Arial", 12))
@@ -35,47 +47,50 @@ class GradientInputField(QWidget):
         self.input.setFixedSize(self.size())
 
     def resizeEvent(self, event):
+        """Resize the input field when widget is resized."""
         self.input.setFixedSize(self.size())
         super().resizeEvent(event)
 
 
 class AddWordWindow(BaseWindow):
-    def __init__(self):
+    """Window for adding new vocabulary words."""
+    
+    def __init__(self, data_manager):
+        """
+        Initialize the Add Word window.
+        
+        Args:
+            data_manager (DataManager): Shared data manager instance
+        """
         super().__init__("HanSwipe | Mastering Chinese", 360, 640)
-        self.data_manager = DataManager()
-    # Remove default title
+        self.data_manager = data_manager
+        self.setup_ui()
+
+    def setup_ui(self):
+        """Setup all UI components."""
         self.title_label.deleteLater()
-        
-        # Create custom title
         self.create_title()
-        
-        # Create input fields
         self.create_inputs()
-        
-        # Create Done button
         self.create_done_button()
-        
-        # Style credits
         self.style_credits()
 
     def create_title(self):
+        """Create the window title."""
         self.title_label = GradientLabel("Add Word", self)
         self.title_label.move(30, 30)
         self.title_label.setFont(QFont("Arial", 30, QFont.Bold))
         self.apply_shadow(self.title_label)
 
     def create_inputs(self):
-        # Create container widget
+        """Create input fields for Chinese, Pinyin, and English."""
         self.input_container = QWidget(self)
         self.input_container.setGeometry(30, 120, 300, 300)
         self.input_container.setStyleSheet("background: transparent")
         
-        # Create layout
         layout = QVBoxLayout()
         layout.setSpacing(20)
         layout.setContentsMargins(0, 0, 0, 0)
         
-        # Create input fields
         self.input_chinese = GradientInputField("Chinese (汉字)", self.input_container)
         self.apply_shadow(self.input_chinese)
         self.input_pinyin = GradientInputField("Pinyin", self.input_container)
@@ -83,7 +98,6 @@ class AddWordWindow(BaseWindow):
         self.input_english = GradientInputField("English Meaning", self.input_container)
         self.apply_shadow(self.input_english)
         
-        # Add to layout
         layout.addWidget(self.input_chinese)
         layout.addWidget(self.input_pinyin)
         layout.addWidget(self.input_english)
@@ -91,15 +105,15 @@ class AddWordWindow(BaseWindow):
         self.input_container.setLayout(layout)
 
     def create_done_button(self):
+        """Create the Done button to save the word."""
         self.done_button = GradientButton("Done", self)
         self.done_button.setGeometry(30, 520, 300, 60)
         self.done_button.setFont(QFont("Arial", 20, QFont.Bold))
         self.apply_shadow(self.done_button)
-        
-        self.done_button.clicked.connect(self.save_word_data, )
+        self.done_button.clicked.connect(self.save_word_data)
 
     def save_word_data(self):
-        """Collect input data and save to dictionary"""
+        """Collect input data and save to dictionary."""
         chinese = self.input_chinese.input.text().strip()
         pinyin = self.input_pinyin.input.text().strip()
         english = self.input_english.input.text().strip()
@@ -110,30 +124,27 @@ class AddWordWindow(BaseWindow):
             return
 
         try:
-            # Save the word using data manager
             word_id = self.data_manager.add_word(chinese, pinyin, english)
-            
-            # Show success message
             QMessageBox.information(self, "Success", 
                                   f"Word '{chinese}' saved successfully!")
             
-            # Clear the input fields
             self.input_chinese.input.clear()
             self.input_pinyin.input.clear()
             self.input_english.input.clear()
             self.close()
-            
-            # Focus back to Chinese input
             self.input_chinese.input.setFocus()
             
         except Exception as e:
             QMessageBox.critical(self, "Error", 
                                f"An error occurred while saving:\n{str(e)}")
+
     def style_credits(self):
+        """Style the credits label at the bottom."""
         self.credits.setStyleSheet("color: white; background: transparent;")
         self.credits.move((self.width() - self.credits.width()) // 2, self.height() - 40)
 
     def paintEvent(self, event):
+        """Paint the gradient background."""
         painter = QPainter(self)
         gradient = QLinearGradient(0, 0, self.width(), self.height())
         gradient.setColorAt(0, QColor(0, 102, 255))   # Blue

@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import QLabel, QHBoxLayout, QVBoxLayout, QWidget
 from PyQt5.QtGui import QFont, QPainter, QLinearGradient, QColor, QTransform
 from PyQt5.QtCore import Qt, QPropertyAnimation, pyqtProperty, QRect
 from base_ui import BaseWindow, GradientButton, GradientLabel
-
+from data_manager import DataManager
 
 class FlipCard(GradientButton):
     """Custom button with flip animation showing Chinese/Pinyin/English."""

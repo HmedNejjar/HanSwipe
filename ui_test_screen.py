@@ -1,6 +1,8 @@
 import sys
 import random
-from PyQt5.QtWidgets import QApplication, QLabel, QHBoxLayout, QWidget
+from PyQt5.QtWidgets import (
+    QApplication, QLabel, QHBoxLayout, QVBoxLayout, QWidget
+)
 from PyQt5.QtGui import QFont, QPainter, QLinearGradient, QColor, QTransform
 from PyQt5.QtCore import Qt, QPropertyAnimation, pyqtProperty, QRect
 from base_ui import BaseWindow, GradientButton, GradientLabel
@@ -8,7 +10,6 @@ from data_manager import DataManager
 
 
 class FlipCard(GradientButton):
-    """A GradientButton subclass that can animate flip effect."""
     def __init__(self, text, parent=None):
         super().__init__(text, parent)
         self._rotation = 0
@@ -56,7 +57,6 @@ class FlipCard(GradientButton):
         painter.setRenderHint(QPainter.Antialiasing)
         transform = QTransform()
 
-        # Rotate around the vertical center
         transform.translate(self.width() / 2, self.height() / 2)
         angle = self._rotation % 360
         if 90 < angle <= 270:
@@ -65,7 +65,6 @@ class FlipCard(GradientButton):
         transform.translate(-self.width() / 2, -self.height() / 2)
         painter.setTransform(transform)
 
-        # Paint background gradient
         gradient = QLinearGradient(0, 0, self.width(), self.height())
         gradient.setColorAt(0, QColor(138, 43, 226))
         gradient.setColorAt(1, QColor(0, 102, 255))
@@ -73,7 +72,6 @@ class FlipCard(GradientButton):
         painter.setPen(Qt.NoPen)
         painter.drawRoundedRect(QRect(0, 0, self.width(), self.height()), 15, 15)
 
-        # Paint text
         painter.resetTransform()
         super().paintEvent(event)
 
@@ -97,36 +95,63 @@ class FlashcardWindow(BaseWindow):
 
         # Title
         self.custom_title = GradientLabel("Test Yourself", self)
-        self.custom_title.move(30, 30)
         self.custom_title.setFont(QFont("Arial", 30, QFont.Bold))
+        self.custom_title.move(30, 30)
         self.apply_shadow(self.custom_title)
 
-        # Flashcard with flip effect
+        # Main widget to contain layout
+        central = QWidget(self)
+        central.setGeometry(30, 100, 300, 460)
+
+        # Main vertical layout
+        layout = QVBoxLayout()
+        layout.setSpacing(20)
+        layout.setContentsMargins(0, 0, 0, 0)
+
+        layout.addStretch()
+
+        # Flip card
         self.flashcard = FlipCard("", self)
-        self.flashcard.setGeometry(30, 120, 300, 220)
+        self.flashcard.setFixedSize(300, 240)
         self.flashcard.clicked.connect(self.flip_card)
         self.apply_shadow(self.flashcard)
+        layout.addWidget(self.flashcard, alignment=Qt.AlignCenter)
 
         # Counter
         self.counter_label = QLabel("", self)
         self.counter_label.setFont(QFont("Arial", 12))
         self.counter_label.setStyleSheet("color: white; background: transparent;")
-        self.counter_label.setGeometry(30, 360, 300, 30)
         self.counter_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(self.counter_label)
 
         # Buttons
-        self.know_btn = GradientButton("✅ I know it", self)
-        self.know_btn.setGeometry(30, 450, 140, 60)
-        self.know_btn.setFont(QFont("Arial", 14, QFont.Bold))
+        btn_row = QHBoxLayout()
+        btn_row.setSpacing(20)
+
+        self.know_btn = GradientButton("✅", self)
+        self.know_btn.setFixedSize(60, 60)
+        self.know_btn.setFont(QFont("Arial", 18, QFont.Bold))
         self.know_btn.clicked.connect(self.mark_known)
         self.apply_shadow(self.know_btn)
+        self.know_btn.setStyleSheet("background: transparent; border: none; color: white;")
 
-        self.dont_know_btn = GradientButton("❌ Don't know", self)
-        self.dont_know_btn.setGeometry(190, 450, 140, 60)
-        self.dont_know_btn.setFont(QFont("Arial", 14, QFont.Bold))
+        self.dont_know_btn = GradientButton("❌", self)
+        self.dont_know_btn.setFixedSize(60, 60)
+        self.dont_know_btn.setFont(QFont("Arial", 18, QFont.Bold))
         self.dont_know_btn.clicked.connect(self.mark_unknown)
         self.apply_shadow(self.dont_know_btn)
+        self.dont_know_btn.setStyleSheet("background: transparent; border: none; color: white;")
 
+        btn_row.addStretch()
+        btn_row.addWidget(self.know_btn)
+        btn_row.addWidget(self.dont_know_btn)
+        btn_row.addStretch()
+
+        layout.addLayout(btn_row)
+
+        layout.addStretch()
+
+        central.setLayout(layout)
         self.style_credits()
 
     def style_credits(self):
@@ -173,7 +198,6 @@ class FlashcardWindow(BaseWindow):
         self.load_word()
 
     def paintEvent(self, event):
-        """Background gradient like the main menu"""
         painter = QPainter(self)
         gradient = QLinearGradient(0, 0, self.width(), self.height())
         gradient.setColorAt(0, QColor(0, 102, 255))

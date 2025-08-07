@@ -18,7 +18,7 @@ Follow these instructions to get a local copy up and running.
 - Python 3
 - pip
 
-### Installation
+### Installation (If you want the code version)
 
 1. Clone the repository:
    ```sh
@@ -34,13 +34,14 @@ Follow these instructions to get a local copy up and running.
    ```
 
 ### Running the Application
-
+   1.Terminal way
 To launch HanSwipe, run the `Main.py` script from your terminal:
 
 ```sh
 python Main.py
 ```
-
+   2. Executable file
+Open the HanSwipe.exe in the 'HanSWipe App' Foler
 ## How It Works
 
 The application is structured into several modules, each with a specific responsibility:

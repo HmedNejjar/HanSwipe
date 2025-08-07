@@ -17,6 +17,7 @@ class FlipCard(GradientButton):
         self._back_text = ""
         self.flipped = False
         self.setFont(QFont("Arial", 24, QFont.Bold))
+        self.setStyleSheet("background: transparent; color: white")
 
     def setBackText(self, text):
         self._back_text = text
@@ -102,6 +103,7 @@ class FlashcardWindow(BaseWindow):
         # Main widget to contain layout
         central = QWidget(self)
         central.setGeometry(30, 100, 300, 460)
+        central.setStyleSheet("background: transparent;")
 
         # Main vertical layout
         layout = QVBoxLayout()
@@ -133,14 +135,36 @@ class FlashcardWindow(BaseWindow):
         self.know_btn.setFont(QFont("Arial", 18, QFont.Bold))
         self.know_btn.clicked.connect(self.mark_known)
         self.apply_shadow(self.know_btn)
-        self.know_btn.setStyleSheet("background: transparent; border: none; color: white;")
+        self.know_btn.setStyleSheet("""
+            QPushButton {
+                background: transparent;
+                border: none;
+                color: white;
+            }
+            QPushButton:pressed {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                    stop:0 rgba(138, 43, 226, 150), 
+                    stop:1 rgba(0, 102, 255, 150));
+            }
+        """)
 
         self.dont_know_btn = GradientButton("❌", self)
         self.dont_know_btn.setFixedSize(60, 60)
         self.dont_know_btn.setFont(QFont("Arial", 18, QFont.Bold))
         self.dont_know_btn.clicked.connect(self.mark_unknown)
         self.apply_shadow(self.dont_know_btn)
-        self.dont_know_btn.setStyleSheet("background: transparent; border: none; color: white;")
+        self.dont_know_btn.setStyleSheet("""
+            QPushButton {
+                background: transparent;
+                border: none;
+                color: white;
+            }
+            QPushButton:pressed {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                    stop:0 rgba(138, 43, 226, 150), 
+                    stop:1 rgba(0, 102, 255, 150));
+            }
+        """)
 
         btn_row.addStretch()
         btn_row.addWidget(self.know_btn)
@@ -199,10 +223,12 @@ class FlashcardWindow(BaseWindow):
 
     def paintEvent(self, event):
         painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
         gradient = QLinearGradient(0, 0, self.width(), self.height())
         gradient.setColorAt(0, QColor(0, 102, 255))
         gradient.setColorAt(1, QColor(138, 43, 226))
         painter.fillRect(self.rect(), gradient)
+        painter.end()
 
 
 if __name__ == "__main__":
